@@ -110,6 +110,9 @@
         <compilejava package="abfab3d/grid"
             jars=""
         />
+        <compilejava package="abfab3d/opencl"
+                     jars="jocl.jar commons-io-2.4.jar" 
+                />
         <compilejava package="abfab3d/datasources"
             jars="jafama.jar vecmath.jar"
         />
@@ -268,6 +271,7 @@
                 abfab3d/mesh/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
+                abfab3d/opencl/*
                 abfab3d/path/*
                 abfab3d/util/*
                 abfab3d/param/*

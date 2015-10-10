@@ -31,7 +31,11 @@ public class Vector3dParameter extends NumberParameter {
 
     public Vector3dParameter(String name, String desc, Vector3d initialValue) {
         super(name, desc);
-        setValue(initialValue);
+        if(initialValue != null) {
+            setValue(initialValue.clone());
+            defaultValue = value;
+        } else
+            setValue(null);            
     }
 
     @Override
@@ -54,6 +58,8 @@ public class Vector3dParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if (val == null) return;
+
         if (!(val instanceof Vector3d)) {
             throw new IllegalArgumentException("Unsupported type for Vector3D: " + val + " in param: " + getName());
         }

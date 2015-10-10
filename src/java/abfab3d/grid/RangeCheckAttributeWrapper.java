@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 // Internal Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * Detects whether any operations exceed the dimensions specified by
  * the grid.  Useful for debugging code with boundary issues.
@@ -749,4 +751,13 @@ public class RangeCheckAttributeWrapper implements AttributeGridWrapper {
     public AttributeDesc getAttributeDesc(){
         return grid.getAttributeDesc(); 
     }
+
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
+    }
+
+
 }

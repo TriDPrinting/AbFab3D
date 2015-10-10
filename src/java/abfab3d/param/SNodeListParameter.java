@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Alan Hudson
  */
-public class SNodeListParameter extends Parameter {
+public class SNodeListParameter extends BaseParameter {
     public SNodeListParameter(String name) {
 
         this(name, name);
@@ -47,6 +47,18 @@ public class SNodeListParameter extends Parameter {
         return ParameterType.SNODE_LIST;
     }
 
+    public void add(Parameterizable source){
+        ((List) value).add(source);
+    }
+
+    public void set(int index, Parameterizable source){
+        ((List) value).set(index, source);
+    }
+
+    public void clear() {
+        ((List) value).clear();
+    }
+
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
@@ -59,7 +71,7 @@ public class SNodeListParameter extends Parameter {
         }
     }
 
-    public List<SNode> getValue() {
-        return (List<SNode>) value;
+    public List getValue() {
+        return (List) value;
     }
 }

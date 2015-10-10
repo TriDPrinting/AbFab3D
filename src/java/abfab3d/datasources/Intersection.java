@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Vector;
 
 
+import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
@@ -51,7 +52,7 @@ public class Intersection extends TransformableDataSource implements SNode {
     DataSource vDataSources[];
 
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    SNodeListParameter mp_dataSources = new SNodeListParameter("datasources");
+    SNodeListParameter mp_dataSources = new SNodeListParameter("sources");
     
     Parameter m_aparam[] = new Parameter[]{
         mp_blendWidth,
@@ -100,9 +101,20 @@ public class Intersection extends TransformableDataSource implements SNode {
     public void add(DataSource ds){
 
         dataSources.add(ds);
-        ((List)params.get("datasources").getValue()).add(ds);
+        mp_dataSources.add((Parameterizable)ds);
     }
-    
+
+    /**
+     * Set an item into the list
+     *
+     * @param idx The index, it must already exist
+     * @param src
+     */
+    public void set(int idx, Parameterizable src) {
+
+        mp_dataSources.set(idx,src);
+    }
+
     public int initialize(){
 
         super.initialize();
@@ -118,8 +130,15 @@ public class Intersection extends TransformableDataSource implements SNode {
         return RESULT_OK;
         
     }
-    
-    
+
+
+    /**
+     * Set the blending width
+     */
+    public void setBlend(double r){
+        mp_blendWidth.setValue(r);
+    }
+
     /**
      * calculates intersection of all values
      *

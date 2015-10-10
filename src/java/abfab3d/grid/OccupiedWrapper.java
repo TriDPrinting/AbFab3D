@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 // Internal Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * Detects whether a set operation is changing a voxel that
  * is already occupied with a different material.
@@ -592,4 +594,14 @@ public class OccupiedWrapper implements AttributeGridWrapper {
     public AttributeDesc getAttributeDesc(){
         return grid.getAttributeDesc(); 
     }
+
+
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
+    }
+
+
 }

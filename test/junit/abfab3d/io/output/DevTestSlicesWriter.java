@@ -33,7 +33,6 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBitmap;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
@@ -122,7 +121,7 @@ public class DevTestSlicesWriter extends TestCase {
         gyroid.setThickness(0.02*s);
         //gyroid.setLevel(0);
         gyroid.setLevel(1.5);
-        gyroid.setOffset(-0.25*s,-0.25*s,0.*s);
+        gyroid.setCenter(new Vector3d(-0.25*s,-0.25*s,0.*s));
        
         //VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
         
@@ -408,7 +407,7 @@ public class DevTestSlicesWriter extends TestCase {
         //Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(15*MM,15*MM,15*MM), 0.75*MM);
         Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,20*MM), 0.75*MM);
         //Cylinder cylinder = new Cylinder(new Vector3d(0,3*MM,0), new Vector3d(6*MM,4*MM,0), 0.75*MM);
-        cylinder.setScaleFactor(1);
+        //cylinder.setScaleFactor(1);
 
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(8*MM, 0.8*MM);  
 
@@ -736,7 +735,7 @@ public class DevTestSlicesWriter extends TestCase {
         gyroid.setThickness(0.03*sg);
         //gyroid.setLevel(0);
         gyroid.setLevel(1.5);
-        gyroid.setOffset(0.25*sg,-0.2*sg,0.*sg);
+        gyroid.setCenter(new Vector3d(0.25*sg,-0.2*sg,0.*sg));
 
         Intersection intersection = new Intersection();
         intersection.add(new Sphere(0,0,0,15*MM));

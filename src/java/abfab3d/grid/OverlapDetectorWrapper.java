@@ -13,6 +13,8 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.util.Bounds;
+
 import java.util.*;
 
 // Internal Imports
@@ -602,6 +604,13 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
     */
     public AttributeDesc getAttributeDesc(){
         return grid.getAttributeDesc(); 
+    }
+
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
     }
 
 }

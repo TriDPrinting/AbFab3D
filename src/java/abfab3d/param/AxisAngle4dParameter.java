@@ -31,6 +31,7 @@ public class AxisAngle4dParameter extends NumberParameter {
 
     public AxisAngle4dParameter(String name, String desc, AxisAngle4d initialValue) {
         super(name, desc);
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 
@@ -54,6 +55,8 @@ public class AxisAngle4dParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if (val == null) return;
+
         if (!(val instanceof AxisAngle4d)) {
             throw new IllegalArgumentException("Unsupported type for Vector3D: " + val + " in param: " + getName());
         }

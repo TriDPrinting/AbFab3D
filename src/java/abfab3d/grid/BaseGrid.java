@@ -14,6 +14,8 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.util.Bounds;
+
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -128,9 +130,9 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      */
     public BaseGrid(Bounds bounds, double pixel, double sheight) {
         
-        width = bounds.getWidth(pixel);
-        height = bounds.getHeight(sheight);
-        depth = bounds.getDepth(pixel);
+        width = bounds.getWidthVoxels(pixel);
+        height = bounds.getHeightVoxels(sheight);
+        depth = bounds.getDepthVoxels(pixel);
         this.pixelSize = pixel;
         this.hpixelSize = pixelSize / 2.0;
         this.sheight = sheight;
@@ -445,51 +447,50 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
         switch (vc) {
-            case ALL:
-                loop:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            if (!t.foundInterruptible(x, y, z, getState(x, y, z)))
+        case ALL:
+        loop:
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    for (int z = 0; z < depth; z++) {
+                        if (!t.foundInterruptible(x, y, z, getState(x, y, z)))
+                            break loop;
+                    }
+                }
+            }
+            break;
+        case INSIDE:
+        loop:
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    for (int z = 0; z < depth; z++) {
+                        byte state = getState(x, y, z);
+                        
+                        if (state == Grid.INSIDE) {
+                            if (!t.foundInterruptible(x, y, z, state))
                                 break loop;
                         }
                     }
                 }
-                break;
-            case INSIDE:
-                loop:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.INSIDE) {
-                                if (!t.foundInterruptible(x, y, z, state))
-                                    break loop;
-                            }
+            }
+            break;
+        case OUTSIDE:
+        loop:
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    for (int z = 0; z < depth; z++) {
+                        byte state = getState(x, y, z);
+                        
+                        if (state == Grid.OUTSIDE) {
+                            if (!t.foundInterruptible(x, y, z, state))
+                                break loop;
                         }
                     }
                 }
-                break;
-            case OUTSIDE:
-                loop:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.OUTSIDE) {
-                                if (!t.foundInterruptible(x, y, z, state))
-                                    break loop;
-                            }
-                        }
-                    }
-                }
-                break;
-
+            }
+            break;
         }
     }
-
+    
     /**
      * Get the grid coordinates for a world coordinate.
      *
@@ -505,8 +506,8 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
-     * Get the world coordinates for a grid coordinate.
-     *
+     * Get the world coordinates of from the grid coordinates without half voxel shift 
+     * 
      * @param x      The x value in grid coords
      * @param y      The y value in grid coords
      * @param z      The z value in grid coords
@@ -517,6 +518,10 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         coords[0] = x * pixelSize + hpixelSize + xorig;
         coords[1] = y * sheight + hsheight + yorig;
         coords[2] = z * pixelSize + hpixelSize + zorig;
+
+        //coords[0] = x * pixelSize + xorig;
+        //coords[1] = y * sheight   + yorig;
+        //coords[2] = z * pixelSize + zorig;
     }
 
     /**

@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 // Internal Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * Masks the usage of setData calls with an attribute to an underlying grid that may not
  * contain attributes.  This adds overhead to each call but avoid code duplication.  Use this
@@ -731,5 +733,13 @@ public class DualWrapper implements AttributeGridWrapper {
     public AttributeDesc getAttributeDesc(){
         return gridAtt.getAttributeDesc(); 
     }
+
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        ((AttributeGrid)grid).copyData(fromGrid);
+    }
+
 
 }

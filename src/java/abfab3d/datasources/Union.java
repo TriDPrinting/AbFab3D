@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Vector;
 
 
+import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
@@ -50,7 +51,7 @@ public class Union  extends TransformableDataSource implements SNode {
     // fixed vector for calculations
     DataSource vDataSources[];
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    SNodeListParameter mp_dataSources = new SNodeListParameter("datasources");
+    SNodeListParameter mp_dataSources = new SNodeListParameter("sources");
     
     Parameter m_aparam[] = new Parameter[]{
         mp_blendWidth,
@@ -70,6 +71,13 @@ public class Union  extends TransformableDataSource implements SNode {
     public Union(DataSource shape1){
         initParams();
         add(shape1);
+    }
+
+    /**
+     * Set the blending width
+     */
+    public void setBlend(double r){
+        mp_blendWidth.setValue(r);
     }
 
     /**
@@ -97,9 +105,24 @@ public class Union  extends TransformableDataSource implements SNode {
     */
     public void add(DataSource shape){
         dataSources.add(shape);
-        ((List)params.get("datasources").getValue()).add(shape);
+        mp_dataSources.add((Parameterizable) shape);
     }
-    
+
+    /**
+     * Set an item into the list
+     *
+     * @param idx The index, it must already exist
+     * @param src
+     */
+    public void set(int idx, DataSource src) {
+        mp_dataSources.set(idx, (Parameterizable) src);
+        dataSources.set(idx,src);
+    }
+
+    public void clear() {
+        mp_dataSources.clear();
+        dataSources.clear();
+    }
     /**
        @noRefGuide
     */
@@ -108,6 +131,7 @@ public class Union  extends TransformableDataSource implements SNode {
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
 
+        printf("Init union.  size: %d\n",dataSources.size());
         for(int i = 0; i < vDataSources.length; i++){
             
             DataSource ds = vDataSources[i];

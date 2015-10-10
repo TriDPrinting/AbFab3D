@@ -14,6 +14,8 @@ package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
+import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Quat4d;
 
 // External Imports
 
@@ -23,6 +25,8 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.SingularMatrixException;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static abfab3d.util.Output.fmt;
 
 /**
@@ -80,6 +84,20 @@ public class MathUtil {
     	
     	return distance;
     }
+
+    /**
+     * return distance between two points in Euclidian space.
+     *
+     */
+    public static final double getDistance(Vector3d v0, Vector3d v1){
+        double 
+            x = v0.x - v1.x,
+            y = v0.y - v1.y,
+            z = v0.z - v1.z;        
+
+        return sqrt(x*x + y*y + z*z);
+    }
+
 
     /**
        extends bounds array by given margin 
@@ -173,6 +191,7 @@ public class MathUtil {
     
     // small number to detect degenerate matrix 
     static final double EPS = 1.e-9;
+    static final double EPS2 = EPS*EPS; // squared epsilon
 
     static final int // elements of 3x3 matrix stored in array 
         M00 = 0, M01 = 1, M02 = 2, 
@@ -589,16 +608,19 @@ public class MathUtil {
     }
 
 
-    public static final double distance(Vector3d v0, Vector3d v1){
-        double 
-            x = v0.x - v1.x,
-            y = v0.y - v1.y,
-            z = v0.z - v1.z;        
 
-        return sqrt(x*x + y*y + z*z);
+    /**
+       return distance between two vectors 
+     */
+    public static double distance(Vector3d v0, Vector3d v1){
+
+        return getDistance(v0,v1);
+
     }
 
-
+    /**
+       return mid point of 2 vectors 
+     */
     public static Vector3d midPoint(Vector3d v0, Vector3d v1){
         
         return new Vector3d((v0.x + v1.x)/2,(v0.y + v1.y)/2,(v0.z + v1.z)/2);
@@ -609,7 +631,7 @@ public class MathUtil {
     // linear intepolation
     // x < -1 return 1;
     // x >  1 returns 0
-    public static final double interpolate_linear(double x){
+    public static final double _interpolate_linear(double x){
 
         return 0.5*(1 - x);
 
@@ -763,13 +785,22 @@ public class MathUtil {
     // linear intepolation
     // x < -1 return 1;
     // x >  1 returns 0
-    // smooth cubic polynom between 
+    // smooth cubic polynom between (0, 1) on interval (-1,1)
     public static final double interpolate_cubic(double x){
 
         if( x <= -1) return 1;
         else if( x >= 1)  return 0;
         else 
             return 0.25*x*(x*x - 3.) + 0.5;
+    }
+
+    /**
+       moves x inside of interval (0,y) by subtracting transslating x into right direction by integer number of interval
+     */
+    public static final double toInterval(double x, double y){
+
+        return (x - y*Math.floor(x/y));
+
     }
     
     /**
@@ -1162,4 +1193,238 @@ public class MathUtil {
         return ((1L << bitCount)-1);
         */
     }
+
+
+    /**
+       
+     */
+    public static final double lerp(double x1, double x2, double t){
+        return x1 + t * (x2-x1);
+    }
+
+
+    /**
+       return point where indicator function becomes 0 on the segment (p0,p1) if values of function at he ends of segment are (v0,v1) 
+       // indicator function algorithm is based on 
+       // 
+       // J. Manson, J. Smith, and S. Schaefer (2011) 
+       // Contouring Discrete Indicator Functions
+       @param result - return value of intersection 
+       */
+    public static void intersectIF(Vector3d p0, Vector3d p1, double v0, double v1, Vector3d result){
+
+        double c = coeffIF(0.5*(1-v0),0.5*(1-v1));
+        result.x = lerp(p0.x,p1.x, c); 
+        result.y = lerp(p0.y,p1.y, c); 
+        result.z = lerp(p0.z,p1.z, c); 
+    }
+
+    //
+    public static final double coeffIF(double v1, double v2){
+        if (v1 < v2)
+            return coeffIF2(v1, v2);
+        else
+            return 1. - coeffIF2(v2, v1);
+    }
+    
+    public static final double coeffIF2(double v1, double v2){
+
+        int selector = 0;
+	if (3*v1 >= v2) // test 1-3
+            selector += 1;
+	if (v1 + 2 >= 3*v2) // test 1-4
+            selector += 2;
+        
+	switch (selector){
+            
+	case 3: // must be 1
+            return (v1 - .5) / (v1 - v2);  
+	case 0: // must be 2
+            return 1.5 - v1 - v2;            
+	case 2: // test 2-3
+            {
+                double d = v1*(v1+v2);
+                double s = 2*v1+2*v2-1;
+                if (4*d > s*s)	{
+                    return 1. - (2*v2 - 1) / (8*v1 + 4*v2 -8*sqrt(d)); // must be 3
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+            
+	case 1: // test 2-4
+            {
+                double b1 = 1 - v2;
+                double b2 = 1 - v1;
+                
+                double d = b1*(b1+b2);
+                double s = 2*b1+2*b2-1;
+                if (4*d > s*s){
+                    return (2*b2 - 1) / (8*b1 + 4*b2 - 8*sqrt(d)); // must be 4
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+	}
+        
+	return 0;
+    }
+    
+
+    /**
+       return mathematic fractional part {x} = (x - [x]}
+     */
+    public final static double frac(double x){
+        return (x - Math.floor(x));
+    }
+
+    /**
+       return (v1.[v2 x v3])
+     */
+    final public static double tripleProduct(Vector3d v1, Vector3d v2, Vector3d v3){
+        return 
+            v1.x *(v2.y * v3.z - v2.z * v3.y) + 
+            v1.y *(v2.z * v3.x - v2.x * v3.z) + 
+            v1.z *(v2.x * v3.y - v2.y * v3.x);
+    }
+
+    /**
+       convert quaternion into AxisAngle representation 
+     */
+    public static final AxisAngle4d getAxisAngle(Quat4d q){
+
+        double mag = q.x*q.x + q.y*q.y + q.z*q.z;
+        double x,y,z,angle;
+        if ( mag > EPS2 ) {
+            mag = Math.sqrt(mag);
+            double invMag = 1.0/mag;
+            
+            x = q.x*invMag;
+            y = q.y*invMag;
+            z = q.z*invMag;
+            angle = 2.0*Math.atan2(mag, q.w);
+        } else {
+            x = 0.0;
+            y = 1.0;
+            z = 0.0;
+            angle = 0;
+        }
+        return new AxisAngle4d(x,y,z,angle);
+    }
+
+    /**
+       naive conversion of matrix into axis angle
+       it fails when angle is of rotation is 180
+     */
+    static AxisAngle4d getAxisAngle_v0(Matrix3d m){
+
+        double x,y,z,angle;
+
+        x = (m.m21 - m.m12);
+        y = (m.m02 - m.m20);
+        z = (m.m10 - m.m01);
+
+        double mag = x*x + y*y + z*z;
+        
+        if (mag > EPS2 ) {
+            mag = Math.sqrt(mag);
+
+            double sin = 0.5*mag;
+            double cos = 0.5*(m.m00 + m.m11 + m.m22 - 1.0);            
+            angle = Math.atan2(sin, cos);
+
+            double invMag = 1.0/mag;
+            x = x*invMag;
+            y = y*invMag;
+            z = z*invMag;
+        } else {
+            // this is wrong, does not handles case of rotation by 180 
+            x = 0.0;
+            y = 1.0;
+            z = 0.0;
+            angle = 0.0;
+        }
+        return new AxisAngle4d(x,y,z,angle);
+
+    }
+
+    /**
+       @return axis and angle or rotation represented as matrix 
+     */
+    public static AxisAngle4d getAxisAngle(Matrix3d m){
+
+        double q0=0, q1, q2, q3;
+        double trace = m.m00 + m.m11 + m.m22;
+        //printf("trace: %7.5f\n", trace);
+
+        if(trace > 0) {
+            q0 = 0.5*sqrt(trace + 1);
+            q1 = (m.m21 - m.m12)/(4*q0);
+            q2 = (m.m02 - m.m20)/(4*q0);
+            q3 = (m.m10 - m.m01)/(4*q0);
+        } else { // negative trace 
+            q1 = 0.5*sqrt(1 + m.m00 - m.m11 - m.m22);
+            q2 = 0.5*sqrt(1 + m.m11 - m.m22 - m.m00);
+            q3 = 0.5*sqrt(1 + m.m22 - m.m00 - m.m11);
+            double a1 = abs(q1);
+            double a2 = abs(q2);
+            double a3 = abs(q3);            
+            if(a1 >= a2 && a1 >= a3) {
+                //printf("trace1: %7.5f\n", trace);            
+                // a1 is the largest
+                q0 = (m.m21 - m.m12)/(4*q1);
+                q2 = (m.m10 + m.m01)/(4*q1);
+                q3 = (m.m02 + m.m20)/(4*q1);
+            } else if (a2 >= a1 && a2>= a3){
+                //printf("trace2: %7.5f\n", trace);            
+                // a2 is the largest                
+                q0 = (m.m02 - m.m20)/(4*q2);
+                q1 = (m.m01 + m.m10)/(4*q2);                
+                q3 = (m.m12 + m.m21)/(4*q2);                
+            } else if(a3 >= a1 && a3 >= a2){
+                //printf("trace3: %7.5f\n", trace);            
+                // a3 is the largest
+                q0 = (m.m10 - m.m01)/(4*q3);
+                q1 = (m.m20 + m.m02)/(4*q3);                
+                q2 = (m.m12 + m.m21)/(4*q3);
+            }            
+        } /// negative trace 
+
+        return getAxisAngle(new Quat4d(q1,q2,q3,q0));
+    }
+
+    /**
+       @return axis and angle or rotation which rotates basis vectors standard orthogonal basis (1,0,0),(0,1,0),(0,0,1) into orthonormal basis (v1, v2, v3)
+     */
+    public static AxisAngle4d getAxisAngle(Vector3d v1, Vector3d v2, Vector3d v3){
+
+        Matrix3d m = new Matrix3d(v1.x,v2.x, v3.x,v1.y,v2.y,v3.y,v1.z,v2.z,v3.z);
+        return getAxisAngle(m);
+        
+    }
+
+    /**
+     * Round up a numerator to be divisible by denominator.  
+     *
+     * @param numerator 
+     * @param denominator 
+     * @return
+     */
+    public final static int roundUp(int numerator, int denom) {
+
+        if (denom == 0) return numerator;
+
+        return denom*((numerator + denom - 1)/denom);
+
+    }
+    
+    /**
+       return rounded value as int
+     */
+    public final static int iround(double value) {
+        
+        return (int)Math.round(value);
+
+    }
+
 }

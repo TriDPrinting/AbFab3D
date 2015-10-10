@@ -35,19 +35,17 @@ import junit.framework.TestSuite;
 import abfab3d.grid.AttributeMakerGeneral;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.Bounds;
+import abfab3d.util.Bounds;
 
 
 import abfab3d.geom.TriangulatedModels;
 
 import abfab3d.util.MathUtil;
 import abfab3d.util.ImageGray16;
-import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
 import abfab3d.distance.DistanceDataSphere;
@@ -61,30 +59,11 @@ import abfab3d.datasources.Box;
 import abfab3d.datasources.Noise;
 import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Ring;
 import abfab3d.datasources.Torus;
-import abfab3d.datasources.ImageBitmap;
-import abfab3d.datasources.DataTransformer;
-import abfab3d.datasources.Intersection;
-import abfab3d.datasources.Union;
 import abfab3d.datasources.Composition;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Triangle;
-import abfab3d.datasources.Cylinder;
-import abfab3d.datasources.LimitSet;
 import abfab3d.datasources.VolumePatterns;
 
-import abfab3d.transforms.RingWrap;
-import abfab3d.transforms.FriezeSymmetry;
-import abfab3d.transforms.WallpaperSymmetry;
 import abfab3d.transforms.Rotation;
-import abfab3d.transforms.CompositeTransform;
-import abfab3d.transforms.Scale;
-import abfab3d.transforms.SphereInversion;
-import abfab3d.transforms.Translation;
-import abfab3d.transforms.PlaneReflection;
-
-import abfab3d.datasources.VolumePatterns;
 
 import abfab3d.grid.op.GridMaker;
 
@@ -967,14 +946,11 @@ public class TestSlicesWriter extends TestCase {
         double sizex = 10*MM; 
         double sizey = 10*MM; 
         double sizez = 10*MM;
-        double s = 5*MM;
+        double s = 10*MM;
+        double s1 = 0, s2 = s;
 
-        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        double bounds[] = new double[]{s1, s2, s1, s2, s1, s2};
         
-        MathUtil.roundBounds(bounds, voxelSize);
-        bounds = MathUtil.extendBounds(bounds, margin);                
-
-
         int ng[] = MathUtil.getGridSize(bounds, voxelSize);
 
 
@@ -982,13 +958,15 @@ public class TestSlicesWriter extends TestCase {
         double boxSize = 4*MM;
 
         printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
-        double coneCenter = 2*MM;
-        double sphereCenter = 1*MM; 
+        double grad[] = new double[]{1.,1.,1.};
 
-        Noise noise = new Noise(2*MM, 5);
+        //Noise noise = new Noise(new Vector3d(s,s,s), 1,1,1, grad);
+        Noise noise = new Noise(new Vector3d(s,s,s), 15,15,15);
+        noise.set("factor", 0.8);
+        noise.set("offset", 0.5);
 
         GridMaker gm = new GridMaker();  
-        gm.setMargin(2);
+        gm.setMargin(0);
         
         gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8}, true));
         
@@ -1004,12 +982,10 @@ public class TestSlicesWriter extends TestCase {
         
         grid.setAttributeDesc(attDesc);
         
-        if(useSVXWriter){
-            new SVXWriter().write(grid, "/tmp/slices/simplexNoiseP5.svx");       
-        } else {
-            SlicesWriter writer = new SlicesWriter();
-            writer.writeSlices(grid, "/tmp/slices/simplexNoiseP%04d.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(0, 0xFFFFFF));           
-        }
+        new SVXWriter(0).write(grid, "/tmp/slices/perlinNoise3DX.svx");       
+        new SVXWriter(1).write(grid, "/tmp/slices/perlinNoise3DY.svx");       
+        new SVXWriter(2).write(grid, "/tmp/slices/perlinNoise3DZ.svx");       
+
     }
 
     static class BitsExtractor implements LongConverter {
@@ -1033,9 +1009,9 @@ public class TestSlicesWriter extends TestCase {
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
-        //new TestSlicesWriter().colorTestNoise();
+        new TestSlicesWriter().colorTestNoise();
         //new TestSlicesWriter().blackWhiteTest();
-        new TestSlicesWriter().grayTest();
+        //new TestSlicesWriter().grayTest();
     }
     
 }
